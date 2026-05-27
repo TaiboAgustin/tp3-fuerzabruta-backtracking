@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JaCoCo
+        run: |
+          curl -sL https://repo1.maven.org/maven2/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar -o jacoco-agent.jar
+          curl -sL https://repo1.maven.org/maven2/org/jacoco/org.jacoco.cli/0.8.11/org.jacoco.cli-0.8.11-nodeps.jar -o jacococli.jar
+
+      - name: Compile
+        run: |
+          mkdir -p bin
+          javac -cp "lib/*" -d bin $(find src test -name "*.java")
+
+      - name: Run tests with coverage
+        run: |
+          TEST_CLASSES=$(find bin -name "*Test.class" | sed 's|bin/||' | sed 's|/|.|g' | sed 's|\.class$||')
+          java -javaagent:jacoco-agent.jar=destfile=jacoco.exec,excludes=UI/* -cp "bin:lib/*" org.junit.runner.JUnitCore $TEST_CLASSES
+
+      - name: Generate coverage report
+        run: |
+          rm -rf bin/UI
+          java -jar jacococli.jar report jacoco.exec \
+            --classfiles bin \
+            --sourcefiles src \
+            --xml coverage.xml
+
+      - name: Check coverage threshold
+        run: |
+          python3 - <<'EOF'
+          import xml.etree.ElementTree as ET
+          import sys
+
+          THRESHOLD = 80
+
+          tree = ET.parse('coverage.xml')
+          root = tree.getroot()
+
+          for counter in root.findall('counter'):
+              if counter.get('type') == 'LINE':
+                  missed  = int(counter.get('missed'))
+                  covered = int(counter.get('covered'))
+                  total   = missed + covered
+                  pct     = covered / total * 100 if total > 0 else 0
+                  print(f"Cobertura de líneas: {pct:.1f}%")
+                  if pct < THRESHOLD:
+                      print(f"Fallo: cobertura {pct:.1f}% por debajo del umbral de {THRESHOLD}%")
+                      sys.exit(1)
+                  break
+          EOF
