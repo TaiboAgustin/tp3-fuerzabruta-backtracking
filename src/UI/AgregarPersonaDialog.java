@@ -122,10 +122,12 @@ public class AgregarPersonaDialog extends JDialog {
     }
 
     private void styleSpinner(JSpinner sp) {
-        if (sp.getEditor() instanceof JSpinner.DefaultEditor editor) {
-            editor.getTextField().setBackground(INPUT_BG);
-            editor.getTextField().setForeground(Color.WHITE);
-            editor.getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        JComponent editor = sp.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor) editor).getTextField();
+            tf.setBackground(INPUT_BG);
+            tf.setForeground(Color.WHITE);
+            tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         }
         sp.setBorder(BorderFactory.createLineBorder(BORDER));
     }
