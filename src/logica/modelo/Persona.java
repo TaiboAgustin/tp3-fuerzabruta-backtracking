@@ -1,9 +1,11 @@
 package logica.modelo;
 
+import java.util.Objects;
+
 public class Persona {
-    private final String nombre;
-    private final Rol rol;
-    private final int calificacion; // 1-5
+    private String nombre;
+    private Rol rol;
+    private int calificacion;
 
     public Persona(String nombre, Rol rol, int calificacion) {
         if (nombre == null || nombre.isBlank()) {
@@ -21,15 +23,19 @@ public class Persona {
     }
 
     public String getNombre() { return nombre; }
-    public Rol getRol()       { return rol; }
+    public Rol getRol() { return rol; }
     public int getCalificacion() { return calificacion; }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Persona)) return false;
-        Persona p = (Persona) o;
-        return nombre.equals(p.nombre) && rol == p.rol;
+        if (o == null || getClass() != o.getClass()) return false;
+        Persona persona = (Persona) o;
+        return Objects.equals(nombre, persona.nombre);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(nombre);
+    }
 }

@@ -1,16 +1,12 @@
 package logica.modelo;
 
+import java.util.Objects;
+
 public class Incompatibilidad {
-    private final Persona persona1;
-    private final Persona persona2;
+    private Persona persona1;
+    private Persona persona2;
 
     public Incompatibilidad(Persona persona1, Persona persona2) {
-        if (persona1 == null || persona2 == null) {
-            throw new IllegalArgumentException("Ninguna persona puede ser nula.");
-        }
-        if (persona1.equals(persona2)) {
-            throw new IllegalArgumentException("Una persona no puede ser incompatible con sí misma.");
-        }
         this.persona1 = persona1;
         this.persona2 = persona2;
     }
@@ -27,9 +23,15 @@ public class Incompatibilidad {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Incompatibilidad)) return false;
-        Incompatibilidad inc = (Incompatibilidad) o;
-        return involucra(inc.persona1, inc.persona2);
+        if (o == null || getClass() != o.getClass()) return false;
+        Incompatibilidad that = (Incompatibilidad) o;
+        
+        return (Objects.equals(persona1, that.persona1) && Objects.equals(persona2, that.persona2)) ||
+               (Objects.equals(persona1, that.persona2) && Objects.equals(persona2, that.persona1));
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(persona1) + Objects.hashCode(persona2);
+    }
 }

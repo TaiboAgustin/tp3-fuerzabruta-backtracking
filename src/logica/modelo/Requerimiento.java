@@ -1,33 +1,36 @@
 package logica.modelo;
 
-import java.util.Collections;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Requerimiento {
-    private final Map<Rol, Integer> cantidadesPorRol;
+    private Map<Rol, Integer> cuposPorRol;
 
-    public Requerimiento(Map<Rol, Integer> cantidadesPorRol) {
-        if (cantidadesPorRol == null) {
-            throw new IllegalArgumentException("El mapa de cantidades no puede ser nulo.");
-        }
-        EnumMap<Rol, Integer> copia = new EnumMap<>(Rol.class);
+    public Requerimiento(Map<Rol, Integer> cuposPorRol) {
+		super();
+		this.cuposPorRol = cuposPorRol;
+	}
+
+	public Requerimiento() {
+        this.cuposPorRol = new HashMap<>();
+    }
+
+    public void setCupo(Rol rol, int cantidad) {
+        this.cuposPorRol.put(rol, cantidad);
+    }
+
+    public int getCupo(Rol rol) {
+        return this.cuposPorRol.getOrDefault(rol, 0);
+    }
+    
+    public boolean equipoCompleto(ResultadoEquipo equipo) {
         for (Rol rol : Rol.values()) {
-            int cantidad = cantidadesPorRol.getOrDefault(rol, 0);
-            if (cantidad < 0) {
-                throw new IllegalArgumentException("La cantidad para " + rol + " no puede ser negativa.");
+            if (equipo.contarPorRol(rol) != getCupo(rol)) {
+                return false;
             }
-            copia.put(rol, cantidad);
         }
-        this.cantidadesPorRol = Collections.unmodifiableMap(copia);
+        return true;
     }
-
-    public int getCantidad(Rol rol) {
-        return cantidadesPorRol.getOrDefault(rol, 0);
-    }
-
-    public Map<Rol, Integer> getCantidadesPorRol() {
-        return cantidadesPorRol;
-    }
-
+    
+    
 }

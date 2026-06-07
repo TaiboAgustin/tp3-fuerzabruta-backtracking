@@ -3,8 +3,10 @@ package logica.algoritmo;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.SwingWorker;
 
@@ -16,14 +18,23 @@ import logica.modelo.Rol;
 
 public class AlgoritmoBacktracking {
 	
-    private List<Persona> mejorEquipo;
+    private Set<Persona> mejorEquipo;
     private int mejorCalificacion;
     private int[] maxCalificacionRestante;
     private List<Incompatibilidad> incompatibilidades;
+    private final List<Persona> candidatos;
+    private final Requerimiento requerimiento;
 
-	public ResultadoEquipo resolver(List<Persona> personas, List<Incompatibilidad> incompatibilidades, Requerimiento requerimiento) {
+    public AlgoritmoBacktracking(List<Persona> candidatos, List<Incompatibilidad> incompatibilidades, Requerimiento requerimiento) {
+        this.candidatos         = candidatos;
+        this.incompatibilidades = incompatibilidades;
+        this.requerimiento      = requerimiento;
+    }
 
-		Map<Rol, List<Persona>> candidatosOrdenadosPorRol = agruparCandidatosPorRol(personas);
+
+	public ResultadoEquipo buscar() {
+
+		Map<Rol, List<Persona>> candidatosOrdenadosPorRol = agruparCandidatosPorRol(candidatos);
 		Rol[] rolesAUtilizar = seleccionarRolesRequeridos(requerimiento);
 
 		if(!verificarSolucionPosible(candidatosOrdenadosPorRol, rolesAUtilizar, requerimiento)) {
@@ -48,7 +59,7 @@ public class AlgoritmoBacktracking {
         for (int i = 0; i < n; i++) {
             Rol rol = rolesAUtilizar[i];
             List<Persona> candidatos = candidatosOrdenadosPorRol.get(rol);
-            int k = requerimiento.getCantidad(rol);
+            int k = requerimiento.getCupo(rol);
             int suma = 0;
             for (int j = 0; j < k && j < candidatos.size(); j++) {
                 suma += candidatos.get(j).getCalificacion();
@@ -65,7 +76,7 @@ public class AlgoritmoBacktracking {
 
 	private boolean verificarSolucionPosible(Map<Rol, List<Persona>> candidatosOrdenadosPorRol, Rol[] rolesAUtilizar, Requerimiento requerimiento) {
 		for (Rol rol : rolesAUtilizar) {
-			if (candidatosOrdenadosPorRol.get(rol).size() < requerimiento.getCantidad(rol)) {
+			if (candidatosOrdenadosPorRol.get(rol).size() < requerimiento.getCupo(rol)) {
 				return false;
 			}
 		}
@@ -75,7 +86,7 @@ public class AlgoritmoBacktracking {
 	private Rol[] seleccionarRolesRequeridos(Requerimiento requerimiento) {
 		List<Rol> rolesTemp = new ArrayList<>();
 		for (Rol r : Rol.values()) {
-			if (requerimiento.getCantidad(r) > 0) {
+			if (requerimiento.getCupo(r) > 0) {
 				rolesTemp.add(r);
 			}
 		}
@@ -102,7 +113,7 @@ public class AlgoritmoBacktracking {
         if (indiceRol == rolesRequeridos.length) {
             if (calParcial > mejorCalificacion) {
                 mejorCalificacion = calParcial;
-                mejorEquipo = new ArrayList<>(equipo);
+                mejorEquipo = new HashSet<>(equipo);
             }
             return;
         }
@@ -114,7 +125,7 @@ public class AlgoritmoBacktracking {
 
         Rol rolActual = rolesRequeridos[indiceRol];
         List<Persona> candidatos = candidatosPorRol.get(rolActual);
-        int necesarios = requerimiento.getCantidad(rolActual);
+        int necesarios = requerimiento.getCupo(rolActual);
 
         elegirCombinacion(candidatos, necesarios, 0, new ArrayList<>(),
                 candidatosPorRol, rolesRequeridos, requerimiento,
@@ -161,5 +172,4 @@ public class AlgoritmoBacktracking {
 		}
 		return false;
 	}
-
 }
