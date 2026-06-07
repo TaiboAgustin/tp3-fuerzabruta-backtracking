@@ -9,7 +9,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import logica.modelo.Incompatibilidad;
 import logica.modelo.Persona;
