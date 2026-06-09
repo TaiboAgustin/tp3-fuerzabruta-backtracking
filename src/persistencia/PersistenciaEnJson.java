@@ -12,6 +12,8 @@ import java.util.Set;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+
+import logica.modelo.Incompatibilidad;
 import logica.modelo.Persona;
 
 public class PersistenciaEnJson {
@@ -56,7 +58,50 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				throw new RuntimeException("Error a la carga de Datos",e);
 			}
 		}
+		public static void guardarIncompatibilidad(Incompatibilidad incompatibles,String archivo){
+			IncompatibilidadDato dto= convertirAIncompatibilidad(incompatibles);
+			try(FileWriter writer = new FileWriter(archivo)){
+				gson.toJson(dto,writer);
+			}
+			catch(IOException e){
+				throw new RuntimeException("Error al cargar el dato");
+			}
+		}
+		public static List<Incompatibilidad> cargaIncompatibilidad(Set<Persona> personal , String archivo){
+			List<Incompatibilidad> listaIncompatibilidad =new ArrayList<Incompatibilidad>();
+			try (FileReader reader = new FileReader(archivo)){
+				Type tipoLista = new TypeToken<Set<IncompatibilidadDato>>(){}.getType();
+				Set<IncompatibilidadDato> dtos = gson.fromJson(reader, tipoLista);
+				if(dtos != null){
+					for (IncompatibilidadDato dto : dtos) {
+						String primeraPersona= dto.__PrimeraPersona;
+						String segundaPersona= dto.__SegundaPersona;
+						listaIncompatibilidad.add(buscaYcreaIncompatibilidad(personal, primeraPersona, segundaPersona));
+					}
+				}
+				return listaIncompatibilidad;
+			} catch (Exception e) {
+				throw new RuntimeException("Error a la hora de cargar");
+			}
+		}
 
+		private static Incompatibilidad buscaYcreaIncompatibilidad(Set<Persona> personal, String primeraPersona, String segundaPersona) {
+			return new Incompatibilidad(buscarPersonaPorNombre(personal, primeraPersona),buscarPersonaPorNombre(personal,segundaPersona));
+		}
+		public static Persona buscarPersonaPorNombre(Set<Persona> personas, String nombre) {
+    	for (Persona persona : personas) {
+        if (persona.getNombre().equals(nombre)) {
+            return persona;
+        }
+    }
+    return null;
+}
+		private static IncompatibilidadDato convertirAIncompatibilidad(Incompatibilidad incompatibles) {
+			IncompatibilidadDato dto= new IncompatibilidadDato();
+			dto.__PrimeraPersona = incompatibles.getPersona1().getNombre();
+			dto.__SegundaPersona = incompatibles.getPersona2().getNombre();
+			return dto;
+		}
 		public static PersonaDatos convertirPersonaADatos(Persona persona) {
 			PersonaDatos dto= new PersonaDatos();
 			dto._nombre=persona.getNombre();

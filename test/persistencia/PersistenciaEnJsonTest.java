@@ -1,10 +1,13 @@
 package persistencia;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import logica.modelo.Incompatibilidad;
 import logica.modelo.Persona;
 import logica.modelo.Rol;
 import persistencia.PersistenciaEnJson;
@@ -88,4 +92,52 @@ public class PersistenciaEnJsonTest {
 	        assertTrue(resultado.contains(
 	                new Persona("Ana", Rol.TESTER, 4)));
 	    }
+	@Test
+    public void buscarPersonaPorNombreExistente() {
+
+        Set<Persona> personal = new HashSet<>();
+
+        Persona juan = new Persona("Juan", Rol.PROGRAMADOR, 3);
+        Persona ana = new Persona("Ana", Rol.TESTER, 4);
+
+        personal.add(juan);
+        personal.add(ana);
+
+        Persona encontrada =
+                PersistenciaEnJson.buscarPersonaPorNombre(personal, "Juan");
+
+        assertNotNull(encontrada);
+        assertEquals("Juan", encontrada.getNombre());
+    }
+
+    @Test
+    public void buscarPersonaPorNombreInexistente() {
+
+        Set<Persona> personal = new HashSet<>();
+
+        personal.add(new Persona("Juan", Rol.PROGRAMADOR, 3));
+
+        Persona encontrada =
+                PersistenciaEnJson.buscarPersonaPorNombre(personal, "Pedro");
+
+        assertNull(encontrada);
+   		}
+	@Test
+	public void crearIncompatibilidadCorrectamente() {
+
+   		 Set<Persona> personal = new HashSet<>();
+
+    	Persona juan = new Persona("Juan", Rol.PROGRAMADOR, 3);
+    	Persona ana = new Persona("Ana", Rol.TESTER, 4);
+
+    	personal.add(juan);
+    	personal.add(ana);
+
+    	Incompatibilidad incompatibilidad =new Incompatibilidad(
+                    PersistenciaEnJson.buscarPersonaPorNombre(personal, "Juan"),
+                    PersistenciaEnJson.buscarPersonaPorNombre(personal, "Ana"));
+
+    assertEquals(juan, incompatibilidad.getPersona1());
+    assertEquals(ana, incompatibilidad.getPersona2());
+}
 	}
