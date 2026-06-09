@@ -324,7 +324,7 @@ public class PantallaEquipo extends JFrame {
     }
 
     private void mostrarResultado(ResultadoEquipo resultado) {
-        if (resultado == null || resultado.getIntegrantes().isEmpty()) {
+        if (resultado == null || resultado.esSinSolucion()) {
             areaResultado.setForeground(new Color(200, 80, 80));
             areaResultado.setText(
                 "No se encontro ningun equipo valido con los candidatos e incompatibilidades cargados."
