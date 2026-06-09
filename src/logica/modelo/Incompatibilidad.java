@@ -14,6 +14,11 @@ public class Incompatibilidad {
     public Persona getPersona1() { return persona1; }
     public Persona getPersona2() { return persona2; }
 
+    public boolean involucra(Persona a, Persona b) {
+        return (persona1.equals(a) && persona2.equals(b))
+            || (persona1.equals(b) && persona2.equals(a));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
