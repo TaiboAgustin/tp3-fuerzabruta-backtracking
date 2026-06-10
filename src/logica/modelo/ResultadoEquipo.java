@@ -32,8 +32,8 @@ public class ResultadoEquipo {
     public int getCalificacionTotal() { return calificacionTotal; }
     
     public void agregarPersona(Persona p) {
-    	calificacionTotal = calificacionTotal + p.getCalificacion();
         integrantes.add(p);
+    	calificacionTotal = calificacionTotal + p.getCalificacion();
     }
 
     public void removerPersona(Persona p) {
