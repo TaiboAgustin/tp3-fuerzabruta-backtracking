@@ -6,9 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -75,7 +73,7 @@ public class PersistenciaEnJsonTest {
 	    @Test
 	    public void testGuardarYCargarEquipo() {
 
-	        List<Persona> equipo = new ArrayList<>();
+	        Set<Persona> equipo = new HashSet<>();
 
 	        equipo.add(new Persona("Juan", Rol.PROGRAMADOR, 3));
 	        equipo.add(new Persona("Ana", Rol.TESTER, 4));
