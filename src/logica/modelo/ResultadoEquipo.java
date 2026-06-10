@@ -38,6 +38,7 @@ public class ResultadoEquipo {
 
     public void removerPersona(Persona p) {
         integrantes.remove(p);
+        calificacionTotal = calificacionTotal - p.getCalificacion();
     }
 
     public boolean contiene(Persona p) {
