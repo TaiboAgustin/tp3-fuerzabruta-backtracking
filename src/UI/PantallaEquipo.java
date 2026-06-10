@@ -300,11 +300,14 @@ public class PantallaEquipo extends JFrame {
         tabs.setSelectedIndex(3);
         btnBuscar.setEnabled(false);
 
+        List<Persona>          candidatosCopia         = new ArrayList<>(candidatos);
+        List<Incompatibilidad> incompatibilidadesCopia = new ArrayList<>(incompatibilidades);
+
         SwingWorker<ResultadoEquipo, Void> worker = new SwingWorker<>() {
             @Override
             protected ResultadoEquipo doInBackground() {
                 AlgoritmoBacktracking algo = new AlgoritmoBacktracking(
-                    candidatos, incompatibilidades, requerimiento
+                    candidatosCopia, incompatibilidadesCopia, requerimiento
                 );
                 return algo.buscar();
             }
@@ -314,9 +317,15 @@ public class PantallaEquipo extends JFrame {
                 btnBuscar.setEnabled(true);
                 try {
                     mostrarResultado(get());
-                } catch (ExecutionException | InterruptedException ex) {
+                } catch (ExecutionException ex) {
                     areaResultado.setForeground(new Color(200, 80, 80));
-                    areaResultado.setText("Error al ejecutar el algoritmo: " + ex.getCause().getMessage());
+                    Throwable causa = ex.getCause();
+                    areaResultado.setText("Error al ejecutar el algoritmo: " +
+                        (causa != null ? causa.getMessage() : ex.getMessage()));
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    areaResultado.setForeground(new Color(200, 80, 80));
+                    areaResultado.setText("La busqueda fue interrumpida.");
                 }
             }
         };
