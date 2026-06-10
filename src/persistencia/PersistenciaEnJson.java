@@ -21,15 +21,11 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 		
 		
 		public static void guardarPersona(Persona persona,String archivo) {
-				PersonaDatos dto = convertirPersonaADatos(persona);
-				try(FileWriter writer =new FileWriter(archivo)){
-					gson.toJson(dto,writer);
-				}
-				catch(IOException e) {
-					throw new RuntimeException("Error en la carga del Dato",e);
-				}
-						
-		}
+				Set<Persona> personal = cargarPersonal(archivo);
+				personal.add(persona);
+				guardarEquipo(personal, archivo);
+			 }
+			
 		public static Set<Persona> cargarPersonal(String archivo){
 			try (FileReader reader = new FileReader(archivo)){
 				Type tipoLista= new TypeToken<Set<PersonaDatos>>() {}.getType();
@@ -46,7 +42,7 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				throw new RuntimeException("Error en la carga de datos",e);
 			}
 		}
-		public static void guardarEquipo(List<Persona>equipo , String archivo) {
+		public static void guardarEquipo(Set<Persona>equipo , String archivo) {
 			List<PersonaDatos>dtos = new ArrayList<PersonaDatos>();
 			for(Persona persona : equipo) {
 				dtos.add(convertirPersonaADatos(persona));
@@ -64,7 +60,7 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				gson.toJson(dto,writer);
 			}
 			catch(IOException e){
-				throw new RuntimeException("Error al cargar el dato");
+				throw new RuntimeException("Error al cargar el dato",e);
 			}
 		}
 		public static List<Incompatibilidad> cargaIncompatibilidad(Set<Persona> personal , String archivo){
@@ -81,7 +77,7 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				}
 				return listaIncompatibilidad;
 			} catch (Exception e) {
-				throw new RuntimeException("Error a la hora de cargar");
+				throw new RuntimeException("Error a la hora de cargar",e);
 			}
 		}
 
@@ -92,10 +88,10 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
     	for (Persona persona : personas) {
         if (persona.getNombre().equals(nombre)) {
             return persona;
-        }
-    }
-    return null;
-}
+        	}
+    	}
+		throw new IllegalArgumentException( "No existe una persona llamada" + nombre);
+	}
 		private static IncompatibilidadDato convertirAIncompatibilidad(Incompatibilidad incompatibles) {
 			IncompatibilidadDato dto= new IncompatibilidadDato();
 			dto.__PrimeraPersona = incompatibles.getPersona1().getNombre();
