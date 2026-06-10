@@ -5,7 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -22,17 +24,20 @@ public class PersistenciaEnJsonTest {
 
 	    private static final String ARCHIVO_PERSONA = "persona_test.json";
 	    private static final String ARCHIVO_EQUIPO = "equipo_test.json";
+	    private static final String ARCHIVO_INCOMPAT = "incompat_test.json";
 
 	    @Before
 	    public void setUp() {
 	        borrarArchivo(ARCHIVO_PERSONA);
 	        borrarArchivo(ARCHIVO_EQUIPO);
+	        borrarArchivo(ARCHIVO_INCOMPAT);
 	    }
 
 	    @After
 	    public void tearDown() {
 	        borrarArchivo(ARCHIVO_PERSONA);
 	        borrarArchivo(ARCHIVO_EQUIPO);
+	        borrarArchivo(ARCHIVO_INCOMPAT);
 	    }
 
 	    private void borrarArchivo(String nombreArchivo) {
@@ -134,4 +139,41 @@ public class PersistenciaEnJsonTest {
     assertEquals(juan, incompatibilidad.getPersona1());
     assertEquals(ana, incompatibilidad.getPersona2());
 }
+
+	@Test
+	public void testGuardarYCargarIncompatibilidades() {
+
+		Persona juan = new Persona("Juan", Rol.PROGRAMADOR, 3);
+		Persona ana  = new Persona("Ana", Rol.TESTER, 4);
+		Persona luis = new Persona("Luis", Rol.ARQUITECTO, 5);
+
+		Set<Persona> personal = new HashSet<>();
+		personal.add(juan);
+		personal.add(ana);
+		personal.add(luis);
+
+		List<Incompatibilidad> incompatibilidades = new ArrayList<>();
+		incompatibilidades.add(new Incompatibilidad(juan, ana));
+		incompatibilidades.add(new Incompatibilidad(ana, luis));
+
+		PersistenciaEnJson.guardarIncompatibilidades(incompatibilidades, ARCHIVO_INCOMPAT);
+
+		List<Incompatibilidad> resultado =
+				PersistenciaEnJson.cargaIncompatibilidad(personal, ARCHIVO_INCOMPAT);
+
+		assertEquals(2, resultado.size());
+		assertTrue(resultado.contains(new Incompatibilidad(juan, ana)));
+		assertTrue(resultado.contains(new Incompatibilidad(ana, luis)));
+	}
+
+	@Test
+	public void testGuardarYCargarIncompatibilidadesVacias() {
+
+		PersistenciaEnJson.guardarIncompatibilidades(new ArrayList<>(), ARCHIVO_INCOMPAT);
+
+		List<Incompatibilidad> resultado =
+				PersistenciaEnJson.cargaIncompatibilidad(new HashSet<>(), ARCHIVO_INCOMPAT);
+
+		assertTrue(resultado.isEmpty());
+	}
 	}

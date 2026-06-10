@@ -63,6 +63,18 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				throw new RuntimeException("Error al cargar el dato",e);
 			}
 		}
+		public static void guardarIncompatibilidades(List<Incompatibilidad> incompatibilidades, String archivo){
+			List<IncompatibilidadDato> dtos = new ArrayList<>();
+			for(Incompatibilidad inc : incompatibilidades){
+				dtos.add(convertirAIncompatibilidad(inc));
+			}
+			try(FileWriter writer = new FileWriter(archivo)){
+				gson.toJson(dtos,writer);
+			}
+			catch(IOException e){
+				throw new RuntimeException("Error al guardar las incompatibilidades",e);
+			}
+		}
 		public static List<Incompatibilidad> cargaIncompatibilidad(Set<Persona> personal , String archivo){
 			List<Incompatibilidad> listaIncompatibilidad =new ArrayList<Incompatibilidad>();
 			try (FileReader reader = new FileReader(archivo)){
