@@ -7,6 +7,13 @@ public class Incompatibilidad {
     private Persona persona2;
 
     public Incompatibilidad(Persona persona1, Persona persona2) {
+        if (persona1 == null || persona2 == null) {
+            throw new IllegalArgumentException("Una persona no puede ser nula.");
+        }
+        if (persona1.equals(persona2)) {
+            throw new IllegalArgumentException("Una persona no puede ser incompatible con sí misma.");
+        }
+
         this.persona1 = persona1;
         this.persona2 = persona2;
     }
