@@ -2,7 +2,6 @@ package persistencia;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -108,17 +107,14 @@ public class PersistenciaEnJsonTest {
         assertEquals("Juan", encontrada.getNombre());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void buscarPersonaPorNombreInexistente() {
 
         Set<Persona> personal = new HashSet<>();
 
         personal.add(new Persona("Juan", Rol.PROGRAMADOR, 3));
 
-        Persona encontrada =
-                PersistenciaEnJson.buscarPersonaPorNombre(personal, "Pedro");
-
-        assertNull(encontrada);
+        PersistenciaEnJson.buscarPersonaPorNombre(personal, "Pedro");
    		}
 	@Test
 	public void crearIncompatibilidadCorrectamente() {
