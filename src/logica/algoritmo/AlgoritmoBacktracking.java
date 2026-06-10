@@ -43,7 +43,6 @@ public class AlgoritmoBacktracking {
 		
         this.mejorEquipo       = null;
         this.mejorCalificacion = Integer.MIN_VALUE;
-        this.incompatibilidades = incompatibilidades;
         this.maxCalificacionRestante = calcularMaxCalificacionRestantePosible(candidatosOrdenadosPorRol, rolesAUtilizar, requerimiento);
 
         backtrack(candidatosOrdenadosPorRol, rolesAUtilizar, requerimiento, 0, new ArrayList<>(), 0);
