@@ -33,12 +33,13 @@ public class ResultadoEquipo {
     
     public void agregarPersona(Persona p) {
         integrantes.add(p);
-    	calificacionTotal = calificacionTotal + p.getCalificacion();
+        calificacionTotal = calificacionTotal + p.getCalificacion();
     }
 
     public void removerPersona(Persona p) {
-        integrantes.remove(p);
-        calificacionTotal = calificacionTotal - p.getCalificacion();
+        if (integrantes.remove(p)) {
+            calificacionTotal = calificacionTotal - p.getCalificacion();
+        }
     }
 
     public boolean contiene(Persona p) {

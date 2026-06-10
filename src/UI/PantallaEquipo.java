@@ -2,11 +2,15 @@ package UI;
 
 import logica.algoritmo.AlgoritmoBacktracking;
 import logica.modelo.*;
+import persistencia.PersistenciaEnJson;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -270,6 +274,26 @@ public class PantallaEquipo extends JFrame {
             dispose();
         });
 
+        JButton btnCargar = new JButton("Cargar");
+        btnCargar.setBounds(560, 15, 110, 36);
+        btnCargar.setBackground(BORDER);
+        btnCargar.setForeground(Color.WHITE);
+        btnCargar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnCargar.setFocusPainted(false);
+        btnCargar.setBorderPainted(false);
+        btnCargar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnCargar.addActionListener(e -> cargarDatos());
+
+        JButton btnGuardar = new JButton("Guardar");
+        btnGuardar.setBounds(680, 15, 110, 36);
+        btnGuardar.setBackground(BORDER);
+        btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnGuardar.setFocusPainted(false);
+        btnGuardar.setBorderPainted(false);
+        btnGuardar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnGuardar.addActionListener(e -> guardarDatos());
+
         btnBuscar = buildGreenButton("Buscar equipo ideal", 200);
         btnBuscar.setBounds(330, 14, 200, 40);
         btnBuscar.addActionListener(e -> buscarEquipo());
@@ -277,7 +301,90 @@ public class PantallaEquipo extends JFrame {
         footer.add(sep);
         footer.add(btnVolver);
         footer.add(btnBuscar);
+        footer.add(btnCargar);
+        footer.add(btnGuardar);
         return footer;
+    }
+
+    // ─── Persistencia ──────────────────────────────────────────────────────────
+
+    private void guardarDatos() {
+        if (candidatos.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "No hay datos para guardar. Agrega al menos un candidato.",
+                "Sin datos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setDialogTitle("Elegi la carpeta donde guardar los datos");
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File dir = chooser.getSelectedFile();
+        try {
+            PersistenciaEnJson.guardarEquipo(new HashSet<>(candidatos),
+                new File(dir, "personas.json").getPath());
+            PersistenciaEnJson.guardarIncompatibilidades(incompatibilidades,
+                new File(dir, "incompatibilidades.json").getPath());
+            JOptionPane.showMessageDialog(this,
+                "Datos guardados en:\n" + dir.getPath(),
+                "Guardado exitoso", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                "No se pudieron guardar los datos:\n" + ex.getMessage(),
+                "Error al guardar", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarDatos() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setDialogTitle("Elegi la carpeta de donde cargar los datos");
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File dir = chooser.getSelectedFile();
+        File personasFile = new File(dir, "personas.json");
+        if (!personasFile.exists()) {
+            JOptionPane.showMessageDialog(this,
+                "La carpeta no contiene un archivo personas.json.",
+                "Archivo no encontrado", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            Set<Persona> personal = PersistenciaEnJson.cargarPersonal(personasFile.getPath());
+
+            File incFile = new File(dir, "incompatibilidades.json");
+            List<Incompatibilidad> incs = incFile.exists()
+                ? PersistenciaEnJson.cargaIncompatibilidad(personal, incFile.getPath())
+                : new ArrayList<>();
+
+            candidatos.clear();
+            candidatos.addAll(personal);
+            incompatibilidades.clear();
+            incompatibilidades.addAll(incs);
+
+            modelPersonas.clear();
+            for (Persona p : candidatos) {
+                modelPersonas.addElement(personaToString(p));
+            }
+            modelIncompat.clear();
+            for (Incompatibilidad inc : incompatibilidades) {
+                modelIncompat.addElement(
+                    inc.getPersona1().getNombre() + "  <>  " + inc.getPersona2().getNombre()
+                );
+            }
+
+            JOptionPane.showMessageDialog(this,
+                "Se cargaron " + candidatos.size() + " personas y " +
+                incompatibilidades.size() + " incompatibilidades.",
+                "Carga exitosa", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                "No se pudieron cargar los datos:\n" + ex.getMessage(),
+                "Error al cargar", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ─── Lógica de búsqueda ────────────────────────────────────────────────────
@@ -300,11 +407,14 @@ public class PantallaEquipo extends JFrame {
         tabs.setSelectedIndex(3);
         btnBuscar.setEnabled(false);
 
+        List<Persona>          candidatosCopia         = new ArrayList<>(candidatos);
+        List<Incompatibilidad> incompatibilidadesCopia = new ArrayList<>(incompatibilidades);
+
         SwingWorker<ResultadoEquipo, Void> worker = new SwingWorker<>() {
             @Override
             protected ResultadoEquipo doInBackground() {
                 AlgoritmoBacktracking algo = new AlgoritmoBacktracking(
-                    candidatos, incompatibilidades, requerimiento
+                    candidatosCopia, incompatibilidadesCopia, requerimiento
                 );
                 return algo.buscar();
             }
@@ -314,9 +424,15 @@ public class PantallaEquipo extends JFrame {
                 btnBuscar.setEnabled(true);
                 try {
                     mostrarResultado(get());
-                } catch (ExecutionException | InterruptedException ex) {
+                } catch (ExecutionException ex) {
                     areaResultado.setForeground(new Color(200, 80, 80));
-                    areaResultado.setText("Error al ejecutar el algoritmo: " + ex.getCause().getMessage());
+                    Throwable causa = ex.getCause();
+                    areaResultado.setText("Error al ejecutar el algoritmo: " +
+                        (causa != null ? causa.getMessage() : ex.getMessage()));
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    areaResultado.setForeground(new Color(200, 80, 80));
+                    areaResultado.setText("La busqueda fue interrumpida.");
                 }
             }
         };
@@ -324,7 +440,7 @@ public class PantallaEquipo extends JFrame {
     }
 
     private void mostrarResultado(ResultadoEquipo resultado) {
-        if (resultado == null || resultado.getIntegrantes().isEmpty()) {
+        if (resultado == null || resultado.esSinSolucion()) {
             areaResultado.setForeground(new Color(200, 80, 80));
             areaResultado.setText(
                 "No se encontro ningun equipo valido con los candidatos e incompatibilidades cargados."
