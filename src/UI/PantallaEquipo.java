@@ -1,17 +1,14 @@
 package UI;
 
-import logica.algoritmo.AlgoritmoBacktracking;
+import coordinador.CoordinadorEquipo;
 import logica.modelo.*;
-import persistencia.PersistenciaEnJson;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PantallaEquipo extends JFrame {
@@ -21,9 +18,7 @@ public class PantallaEquipo extends JFrame {
     private static final Color BORDER   = new Color(58, 58, 60);
     private static final Color GRAY     = new Color(129, 131, 132);
 
-    private final List<Persona>          candidatos         = new ArrayList<>();
-    private final List<Incompatibilidad> incompatibilidades = new ArrayList<>();
-    private final Requerimiento          requerimiento      = new Requerimiento();
+    private final CoordinadorEquipo coordinador = new CoordinadorEquipo();
 
     private final DefaultListModel<String> modelPersonas = new DefaultListModel<>();
     private final DefaultListModel<String> modelIncompat = new DefaultListModel<>();
@@ -117,8 +112,13 @@ public class PantallaEquipo extends JFrame {
             dlg.setVisible(true);
             Persona p = dlg.getPersona();
             if (p != null) {
-                candidatos.add(p);
-                modelPersonas.addElement(personaToString(p));
+                try {
+                    coordinador.agregarPersona(p);
+                    modelPersonas.addElement(personaToString(p));
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        ex.getMessage(), "Persona duplicada", JOptionPane.WARNING_MESSAGE);
+                }
             }
         });
 
@@ -158,17 +158,17 @@ public class PantallaEquipo extends JFrame {
 
         JButton btnAgregar = buildGreenButton("+ Agregar incompatibilidad", 210);
         btnAgregar.addActionListener(e -> {
-            if (candidatos.size() < 2) {
+            if (coordinador.getCandidatos().size() < 2) {
                 JOptionPane.showMessageDialog(this,
                     "Necesitas al menos 2 candidatos para definir incompatibilidades.",
                     "Sin candidatos", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            AgregarIncompatibilidadDialog dlg = new AgregarIncompatibilidadDialog(this, candidatos);
+            AgregarIncompatibilidadDialog dlg = new AgregarIncompatibilidadDialog(this, coordinador.getCandidatos());
             dlg.setVisible(true);
             Incompatibilidad inc = dlg.getIncompatibilidad();
             if (inc != null) {
-                incompatibilidades.add(inc);
+                coordinador.agregarIncompatibilidad(inc);
                 modelIncompat.addElement(
                     inc.getPersona1().getNombre() + "  <>  " + inc.getPersona2().getNombre()
                 );
@@ -309,7 +309,7 @@ public class PantallaEquipo extends JFrame {
     // ─── Persistencia ──────────────────────────────────────────────────────────
 
     private void guardarDatos() {
-        if (candidatos.isEmpty()) {
+        if (coordinador.getCandidatos().isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "No hay datos para guardar. Agrega al menos un candidato.",
                 "Sin datos", JOptionPane.WARNING_MESSAGE);
@@ -323,10 +323,7 @@ public class PantallaEquipo extends JFrame {
 
         File dir = chooser.getSelectedFile();
         try {
-            PersistenciaEnJson.guardarEquipo(new HashSet<>(candidatos),
-                new File(dir, "personas.json").getPath());
-            PersistenciaEnJson.guardarIncompatibilidades(incompatibilidades,
-                new File(dir, "incompatibilidades.json").getPath());
+            coordinador.guardar(dir);
             JOptionPane.showMessageDialog(this,
                 "Datos guardados en:\n" + dir.getPath(),
                 "Guardado exitoso", JOptionPane.INFORMATION_MESSAGE);
@@ -344,8 +341,7 @@ public class PantallaEquipo extends JFrame {
         if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         File dir = chooser.getSelectedFile();
-        File personasFile = new File(dir, "personas.json");
-        if (!personasFile.exists()) {
+        if (!new File(dir, "personas.json").exists()) {
             JOptionPane.showMessageDialog(this,
                 "La carpeta no contiene un archivo personas.json.",
                 "Archivo no encontrado", JOptionPane.WARNING_MESSAGE);
@@ -353,32 +349,22 @@ public class PantallaEquipo extends JFrame {
         }
 
         try {
-            Set<Persona> personal = PersistenciaEnJson.cargarPersonal(personasFile.getPath());
-
-            File incFile = new File(dir, "incompatibilidades.json");
-            List<Incompatibilidad> incs = incFile.exists()
-                ? PersistenciaEnJson.cargaIncompatibilidad(personal, incFile.getPath())
-                : new ArrayList<>();
-
-            candidatos.clear();
-            candidatos.addAll(personal);
-            incompatibilidades.clear();
-            incompatibilidades.addAll(incs);
+            coordinador.cargar(dir);
 
             modelPersonas.clear();
-            for (Persona p : candidatos) {
+            for (Persona p : coordinador.getCandidatos()) {
                 modelPersonas.addElement(personaToString(p));
             }
             modelIncompat.clear();
-            for (Incompatibilidad inc : incompatibilidades) {
+            for (Incompatibilidad inc : coordinador.getIncompatibilidades()) {
                 modelIncompat.addElement(
                     inc.getPersona1().getNombre() + "  <>  " + inc.getPersona2().getNombre()
                 );
             }
 
             JOptionPane.showMessageDialog(this,
-                "Se cargaron " + candidatos.size() + " personas y " +
-                incompatibilidades.size() + " incompatibilidades.",
+                "Se cargaron " + coordinador.getCandidatos().size() + " personas y " +
+                coordinador.getIncompatibilidades().size() + " incompatibilidades.",
                 "Carga exitosa", JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
@@ -390,12 +376,12 @@ public class PantallaEquipo extends JFrame {
     // ─── Lógica de búsqueda ────────────────────────────────────────────────────
 
     private void buscarEquipo() {
-        requerimiento.setCupo(Rol.LIDER_DE_PROYECTO, (int) spLider.getValue());
-        requerimiento.setCupo(Rol.ARQUITECTO,        (int) spArquitecto.getValue());
-        requerimiento.setCupo(Rol.PROGRAMADOR,       (int) spProgramador.getValue());
-        requerimiento.setCupo(Rol.TESTER,            (int) spTester.getValue());
+        coordinador.setCupoRequerido(Rol.LIDER_DE_PROYECTO, (int) spLider.getValue());
+        coordinador.setCupoRequerido(Rol.ARQUITECTO,        (int) spArquitecto.getValue());
+        coordinador.setCupoRequerido(Rol.PROGRAMADOR,       (int) spProgramador.getValue());
+        coordinador.setCupoRequerido(Rol.TESTER,            (int) spTester.getValue());
 
-        if (candidatos.isEmpty()) {
+        if (coordinador.getCandidatos().isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Agrega al menos un candidato antes de buscar el equipo.",
                 "Sin candidatos", JOptionPane.WARNING_MESSAGE);
@@ -407,16 +393,12 @@ public class PantallaEquipo extends JFrame {
         tabs.setSelectedIndex(3);
         btnBuscar.setEnabled(false);
 
-        List<Persona>          candidatosCopia         = new ArrayList<>(candidatos);
-        List<Incompatibilidad> incompatibilidadesCopia = new ArrayList<>(incompatibilidades);
+        Supplier<ResultadoEquipo> busqueda = coordinador.prepararBusqueda();
 
         SwingWorker<ResultadoEquipo, Void> worker = new SwingWorker<>() {
             @Override
             protected ResultadoEquipo doInBackground() {
-                AlgoritmoBacktracking algo = new AlgoritmoBacktracking(
-                    candidatosCopia, incompatibilidadesCopia, requerimiento
-                );
-                return algo.buscar();
+                return busqueda.get();
             }
 
             @Override
