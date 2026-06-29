@@ -42,45 +42,61 @@ public class CoordinadorEquipoTest {
         }
     }
 
-    // ─── Alta de personas ────────────────────────────────────────────────────
-
     @Test
     public void agregarPersonaLaIncluyeEnLosCandidatos() {
-        Persona ana = new Persona("Ana", Rol.PROGRAMADOR, 4);
-
-        coordinador.agregarPersona(ana);
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
 
         assertEquals(1, coordinador.getCandidatos().size());
-        assertTrue(coordinador.getCandidatos().contains(ana));
+        assertTrue(coordinador.getNombresCandidatos().contains("Ana"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void agregarPersonaDuplicadaPorNombreLanzaExcepcion() {
-        coordinador.agregarPersona(new Persona("Ana", Rol.PROGRAMADOR, 4));
-        coordinador.agregarPersona(new Persona("Ana", Rol.TESTER, 2));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        coordinador.agregarPersona("Ana", Rol.TESTER, 2);
     }
 
     @Test
     public void getCandidatosEsInmodificable() {
-        coordinador.agregarPersona(new Persona("Ana", Rol.PROGRAMADOR, 4));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
         try {
             coordinador.getCandidatos().add(new Persona("Beto", Rol.TESTER, 3));
             org.junit.Assert.fail("La lista expuesta no debe poder modificarse desde afuera");
         } catch (UnsupportedOperationException esperada) {
-            // El coordinador es el único dueño de la lista (encapsulamiento).
         }
     }
 
-    // ─── Incompatibilidades ──────────────────────────────────────────────────
+    @Test
+    public void hayCandidatosReflejaSiHayAlguno() {
+        assertFalse(coordinador.hayCandidatos());
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        assertTrue(coordinador.hayCandidatos());
+    }
+
+    @Test
+    public void puedeAgregarIncompatibilidadesRequiereDosCandidatos() {
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        assertFalse(coordinador.puedeAgregarIncompatibilidades());
+        coordinador.agregarPersona("Beto", Rol.PROGRAMADOR, 5);
+        assertTrue(coordinador.puedeAgregarIncompatibilidades());
+    }
+
+    @Test
+    public void getNombresCandidatosDevuelveLosNombresEnOrden() {
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        coordinador.agregarPersona("Beto", Rol.TESTER, 3);
+
+        assertEquals(2, coordinador.getNombresCandidatos().size());
+        assertEquals("Ana", coordinador.getNombresCandidatos().get(0));
+        assertEquals("Beto", coordinador.getNombresCandidatos().get(1));
+    }
 
     @Test
     public void agregarIncompatibilidadLaIncluye() {
-        Persona ana  = new Persona("Ana",  Rol.PROGRAMADOR, 4);
-        Persona beto = new Persona("Beto", Rol.PROGRAMADOR, 5);
-        coordinador.agregarPersona(ana);
-        coordinador.agregarPersona(beto);
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        coordinador.agregarPersona("Beto", Rol.PROGRAMADOR, 5);
 
-        coordinador.agregarIncompatibilidad(new Incompatibilidad(ana, beto));
+        coordinador.agregarIncompatibilidad(0, 1);
 
         assertEquals(1, coordinador.getIncompatibilidades().size());
     }
@@ -92,43 +108,36 @@ public class CoordinadorEquipoTest {
         coordinador.getIncompatibilidades().add(new Incompatibilidad(ana, beto));
     }
 
-    // ─── Búsqueda ────────────────────────────────────────────────────────────
-
     @Test
     public void prepararBusquedaEligeElMejorCandidato() {
-        coordinador.agregarPersona(new Persona("Ana",  Rol.PROGRAMADOR, 3));
-        Persona beto = new Persona("Beto", Rol.PROGRAMADOR, 5);
-        coordinador.agregarPersona(beto);
+        coordinador.agregarPersona("Ana",  Rol.PROGRAMADOR, 3);
+        coordinador.agregarPersona("Beto", Rol.PROGRAMADOR, 5);
         coordinador.setCupoRequerido(Rol.PROGRAMADOR, 1);
 
         ResultadoEquipo resultado = coordinador.prepararBusqueda().get();
 
         assertFalse(resultado.esSinSolucion());
         assertEquals(5, resultado.getCalificacionTotal());
-        assertTrue(resultado.getIntegrantes().contains(beto));
+        assertTrue(resultado.getIntegrantes().stream().anyMatch(p -> "Beto".equals(p.getNombre())));
     }
 
-    // Regresión: las personas agregadas DESPUÉS de prepararBusqueda no deben
-    // afectar el cómputo. Prueba la copia defensiva de candidatos (race fix).
     @Test
     public void prepararBusquedaCongelaLosCandidatosEnElMomento() {
-        coordinador.agregarPersona(new Persona("Ana", Rol.PROGRAMADOR, 3));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 3);
         coordinador.setCupoRequerido(Rol.PROGRAMADOR, 1);
 
         Supplier<ResultadoEquipo> busqueda = coordinador.prepararBusqueda();
-        coordinador.agregarPersona(new Persona("Beto", Rol.PROGRAMADOR, 5));
+        coordinador.agregarPersona("Beto", Rol.PROGRAMADOR, 5);
 
         ResultadoEquipo resultado = busqueda.get();
 
         assertEquals(3, resultado.getCalificacionTotal());
     }
 
-    // Regresión: cambiar los cupos DESPUÉS de prepararBusqueda no debe afectar
-    // el cómputo. Prueba la copia defensiva del Requerimiento.
     @Test
     public void prepararBusquedaCongelaLosRequerimientosEnElMomento() {
-        coordinador.agregarPersona(new Persona("Ana", Rol.PROGRAMADOR, 3));
-        coordinador.agregarPersona(new Persona("Tom", Rol.TESTER, 4));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 3);
+        coordinador.agregarPersona("Tom", Rol.TESTER, 4);
         coordinador.setCupoRequerido(Rol.PROGRAMADOR, 1);
 
         Supplier<ResultadoEquipo> busqueda = coordinador.prepararBusqueda();
@@ -140,15 +149,19 @@ public class CoordinadorEquipoTest {
         assertEquals(3, resultado.getCalificacionTotal());
     }
 
-    // ─── Persistencia ────────────────────────────────────────────────────────
+    @Test
+    public void tieneDatosGuardadosDetectaElArchivoDePersonas() {
+        assertFalse(coordinador.tieneDatosGuardados(directorio));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
+        coordinador.guardar(directorio);
+        assertTrue(coordinador.tieneDatosGuardados(directorio));
+    }
 
     @Test
     public void guardarYCargarPreservaPersonasEIncompatibilidades() {
-        Persona ana  = new Persona("Ana",  Rol.PROGRAMADOR, 4);
-        Persona beto = new Persona("Beto", Rol.TESTER, 3);
-        coordinador.agregarPersona(ana);
-        coordinador.agregarPersona(beto);
-        coordinador.agregarIncompatibilidad(new Incompatibilidad(ana, beto));
+        coordinador.agregarPersona("Ana",  Rol.PROGRAMADOR, 4);
+        coordinador.agregarPersona("Beto", Rol.TESTER, 3);
+        coordinador.agregarIncompatibilidad(0, 1);
 
         coordinador.guardar(directorio);
 
@@ -157,13 +170,13 @@ public class CoordinadorEquipoTest {
 
         assertEquals(2, recargado.getCandidatos().size());
         assertEquals(1, recargado.getIncompatibilidades().size());
-        assertTrue(recargado.getCandidatos().contains(ana));
-        assertTrue(recargado.getCandidatos().contains(beto));
+        assertTrue(recargado.getNombresCandidatos().contains("Ana"));
+        assertTrue(recargado.getNombresCandidatos().contains("Beto"));
     }
 
     @Test
     public void cargarDirectorioSinIncompatibilidadesDejaListaVacia() {
-        coordinador.agregarPersona(new Persona("Ana", Rol.PROGRAMADOR, 4));
+        coordinador.agregarPersona("Ana", Rol.PROGRAMADOR, 4);
         coordinador.guardar(directorio);
         borrar(new File(directorio, "incompatibilidades.json"));
 

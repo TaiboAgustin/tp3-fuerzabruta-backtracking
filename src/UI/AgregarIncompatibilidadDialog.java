@@ -1,7 +1,5 @@
 package UI;
 
-import logica.modelo.*;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -13,20 +11,17 @@ public class AgregarIncompatibilidadDialog extends JDialog {
     private static final Color BORDER   = new Color(58, 58, 60);
     private static final Color GRAY     = new Color(129, 131, 132);
 
-    private JComboBox<String>  combo1, combo2;
-    private final List<Persona> candidatos;
-    private Incompatibilidad    resultado;
+    private JComboBox<String> combo1, combo2;
+    private boolean           confirmado;
+    private int               indice1, indice2;
 
-    public AgregarIncompatibilidadDialog(JFrame parent, List<Persona> candidatos) {
+    public AgregarIncompatibilidadDialog(JFrame parent, List<String> nombresCandidatos) {
         super(parent, "Agregar incompatibilidad", true);
-        this.candidatos = candidatos;
         setSize(430, 250);
         setLocationRelativeTo(parent);
         setResizable(false);
 
-        String[] nombres = candidatos.stream()
-            .map(Persona::getNombre)
-            .toArray(String[]::new);
+        String[] nombres = nombresCandidatos.toArray(new String[0]);
 
         JPanel panel = new JPanel(null);
         panel.setBackground(BG);
@@ -68,11 +63,15 @@ public class AgregarIncompatibilidadDialog extends JDialog {
                 "Seleccion invalida", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        resultado = new Incompatibilidad(candidatos.get(idx1), candidatos.get(idx2));
+        indice1 = idx1;
+        indice2 = idx2;
+        confirmado = true;
         dispose();
     }
 
-    public Incompatibilidad getIncompatibilidad() { return resultado; }
+    public boolean fueConfirmado() { return confirmado; }
+    public int getIndice1()        { return indice1; }
+    public int getIndice2()        { return indice2; }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
 

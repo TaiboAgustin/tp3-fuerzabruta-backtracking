@@ -24,23 +24,40 @@ public class CoordinadorEquipo {
     private final List<Incompatibilidad> incompatibilidades = new ArrayList<>();
     private final Requerimiento          requerimiento      = new Requerimiento();
 
-    public void agregarPersona(Persona persona) {
+    public void agregarPersona(String nombre, Rol rol, int calificacion) {
+        Persona persona = new Persona(nombre, rol, calificacion);
         if (candidatos.contains(persona)) {
-            throw new IllegalArgumentException("Ya existe una persona con el nombre \"" + persona.getNombre() + "\".");
+            throw new IllegalArgumentException("Ya existe una persona con el nombre \"" + nombre + "\".");
         }
         candidatos.add(persona);
     }
 
-    public void agregarIncompatibilidad(Incompatibilidad incompatibilidad) {
-        incompatibilidades.add(incompatibilidad);
+    public void agregarIncompatibilidad(int indice1, int indice2) {
+        incompatibilidades.add(new Incompatibilidad(candidatos.get(indice1), candidatos.get(indice2)));
     }
 
     public void setCupoRequerido(Rol rol, int cantidad) {
         requerimiento.setCupo(rol, cantidad);
     }
 
+    public boolean hayCandidatos() {
+        return !candidatos.isEmpty();
+    }
+
+    public boolean puedeAgregarIncompatibilidades() {
+        return candidatos.size() >= 2;
+    }
+
     public List<Persona> getCandidatos() {
         return Collections.unmodifiableList(candidatos);
+    }
+
+    public List<String> getNombresCandidatos() {
+        List<String> nombres = new ArrayList<>();
+        for (Persona persona : candidatos) {
+            nombres.add(persona.getNombre());
+        }
+        return Collections.unmodifiableList(nombres);
     }
 
     public List<Incompatibilidad> getIncompatibilidades() {
@@ -57,6 +74,10 @@ public class CoordinadorEquipo {
             copiarRequerimiento()
         );
         return algoritmo::buscar;
+    }
+
+    public boolean tieneDatosGuardados(File directorio) {
+        return new File(directorio, "personas.json").exists();
     }
 
     public void guardar(File directorio) {

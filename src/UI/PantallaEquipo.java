@@ -110,11 +110,10 @@ public class PantallaEquipo extends JFrame {
         btnAgregar.addActionListener(e -> {
             AgregarPersonaDialog dlg = new AgregarPersonaDialog(this);
             dlg.setVisible(true);
-            Persona p = dlg.getPersona();
-            if (p != null) {
+            if (dlg.fueConfirmado()) {
                 try {
-                    coordinador.agregarPersona(p);
-                    modelPersonas.addElement(personaToString(p));
+                    coordinador.agregarPersona(dlg.getNombre(), dlg.getRol(), dlg.getCalificacion());
+                    modelPersonas.addElement(personaToString(dlg.getNombre(), dlg.getRol(), dlg.getCalificacion()));
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(this,
                         ex.getMessage(), "Persona duplicada", JOptionPane.WARNING_MESSAGE);
@@ -158,19 +157,19 @@ public class PantallaEquipo extends JFrame {
 
         JButton btnAgregar = buildGreenButton("+ Agregar incompatibilidad", 210);
         btnAgregar.addActionListener(e -> {
-            if (coordinador.getCandidatos().size() < 2) {
+            if (!coordinador.puedeAgregarIncompatibilidades()) {
                 JOptionPane.showMessageDialog(this,
                     "Necesitas al menos 2 candidatos para definir incompatibilidades.",
                     "Sin candidatos", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            AgregarIncompatibilidadDialog dlg = new AgregarIncompatibilidadDialog(this, coordinador.getCandidatos());
+            List<String> nombres = coordinador.getNombresCandidatos();
+            AgregarIncompatibilidadDialog dlg = new AgregarIncompatibilidadDialog(this, nombres);
             dlg.setVisible(true);
-            Incompatibilidad inc = dlg.getIncompatibilidad();
-            if (inc != null) {
-                coordinador.agregarIncompatibilidad(inc);
+            if (dlg.fueConfirmado()) {
+                coordinador.agregarIncompatibilidad(dlg.getIndice1(), dlg.getIndice2());
                 modelIncompat.addElement(
-                    inc.getPersona1().getNombre() + "  <>  " + inc.getPersona2().getNombre()
+                    nombres.get(dlg.getIndice1()) + "  <>  " + nombres.get(dlg.getIndice2())
                 );
             }
         });
@@ -309,7 +308,7 @@ public class PantallaEquipo extends JFrame {
     // ─── Persistencia ──────────────────────────────────────────────────────────
 
     private void guardarDatos() {
-        if (coordinador.getCandidatos().isEmpty()) {
+        if (!coordinador.hayCandidatos()) {
             JOptionPane.showMessageDialog(this,
                 "No hay datos para guardar. Agrega al menos un candidato.",
                 "Sin datos", JOptionPane.WARNING_MESSAGE);
@@ -341,9 +340,9 @@ public class PantallaEquipo extends JFrame {
         if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         File dir = chooser.getSelectedFile();
-        if (!new File(dir, "personas.json").exists()) {
+        if (!coordinador.tieneDatosGuardados(dir)) {
             JOptionPane.showMessageDialog(this,
-                "La carpeta no contiene un archivo personas.json.",
+                "La carpeta no contiene datos guardados.",
                 "Archivo no encontrado", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -353,7 +352,7 @@ public class PantallaEquipo extends JFrame {
 
             modelPersonas.clear();
             for (Persona p : coordinador.getCandidatos()) {
-                modelPersonas.addElement(personaToString(p));
+                modelPersonas.addElement(personaToString(p.getNombre(), p.getRol(), p.getCalificacion()));
             }
             modelIncompat.clear();
             for (Incompatibilidad inc : coordinador.getIncompatibilidades()) {
@@ -381,7 +380,7 @@ public class PantallaEquipo extends JFrame {
         coordinador.setCupoRequerido(Rol.PROGRAMADOR,       (int) spProgramador.getValue());
         coordinador.setCupoRequerido(Rol.TESTER,            (int) spTester.getValue());
 
-        if (coordinador.getCandidatos().isEmpty()) {
+        if (!coordinador.hayCandidatos()) {
             JOptionPane.showMessageDialog(this,
                 "Agrega al menos un candidato antes de buscar el equipo.",
                 "Sin candidatos", JOptionPane.WARNING_MESSAGE);
@@ -464,8 +463,8 @@ public class PantallaEquipo extends JFrame {
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
 
-    private String personaToString(Persona p) {
-        return p.getNombre() + "  —  " + rolToString(p.getRol()) + "  —  " + p.getCalificacion() + "/5";
+    private String personaToString(String nombre, Rol rol, int calificacion) {
+        return nombre + "  —  " + rolToString(rol) + "  —  " + calificacion + "/5";
     }
 
     private String rolToString(Rol rol) {
