@@ -13,9 +13,7 @@ public class ResultadoEquipoTest {
     private Persona p1;
     private Persona p2;
     private Persona p3;
-
-    // @Before hace que este método se ejecute antes de CADA test, 
-    // asegurando que siempre arranquemos con un equipo vacío y limpio.
+    
     @Before
     public void setUp() {
         equipo = new ResultadoEquipo();
@@ -27,7 +25,6 @@ public class ResultadoEquipoTest {
     @Test
     public void testAgregarYContienePersona() {
         equipo.agregarPersona(p1);
-        
         assertTrue("El equipo debería contener a Ana", equipo.contiene(p1));
         assertFalse("El equipo NO debería contener a Beto", equipo.contiene(p2));
     }
@@ -48,8 +45,7 @@ public class ResultadoEquipoTest {
 
         int totalEsperado = 12; // 5 + 3 + 4
         
-        assertEquals("La calificación total debe ser la suma exacta de sus integrantes", 
-                     totalEsperado, equipo.getCalificacionTotal());
+        assertEquals("La calificación total debe ser la suma exacta de sus integrantes", totalEsperado, equipo.getCalificacionTotal());
     }
 
     @Test
@@ -58,13 +54,31 @@ public class ResultadoEquipoTest {
         equipo.agregarPersona(p2); // TESTER
         equipo.agregarPersona(p3); // PROGRAMADOR
 
-        assertEquals("Debería haber exactamente 2 programadores", 
-                     2, equipo.contarPorRol(Rol.PROGRAMADOR));
+        assertEquals("Debería haber exactamente 2 programadores", 2L, equipo.contarPorRol(Rol.PROGRAMADOR));
+        assertEquals("Debería haber exactamente 1 tester", 1L, equipo.contarPorRol(Rol.TESTER));
+        assertEquals("No debería haber líderes de proyecto", 0L, equipo.contarPorRol(Rol.LIDER_DE_PROYECTO));
+    }
+
+    @Test
+    public void testRemoverPersonaInexistente() {
+        equipo.removerPersona(p1);
         
-        assertEquals("Debería haber exactamente 1 tester", 
-                     1, equipo.contarPorRol(Rol.TESTER));
+        assertFalse("Ana no debería estar en el equipo", equipo.contiene(p1));
+        assertEquals("La calificación total no debe alterarse al intentar borrar a alguien que no existe", 0, equipo.getCalificacionTotal());
+    }
+
+    @Test
+    public void testAgregarPersonaDuplicada() {
+        equipo.agregarPersona(p1); // Agregamos a Ana
+        equipo.agregarPersona(p1); // Intentamos agregar a Ana de nuevo
         
-        assertEquals("No debería haber líderes de proyecto", 
-                     0, equipo.contarPorRol(Rol.LIDER_DE_PROYECTO));
+        assertEquals("La calificación no debe sumar a la misma persona dos veces", 5, equipo.getCalificacionTotal());
+        assertEquals("Solo debería contabilizarse a la persona una vez en su rol", 1L, equipo.contarPorRol(Rol.PROGRAMADOR));
+    }
+
+    @Test
+    public void testEquipoVacio() {
+        assertEquals("La calificación de un equipo vacío debe ser 0", 0, equipo.getCalificacionTotal());
+        assertEquals("No debe haber integrantes contados por rol en un equipo vacío", 0L, equipo.contarPorRol(Rol.TESTER));
     }
 }
