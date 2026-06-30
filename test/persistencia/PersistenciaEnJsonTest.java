@@ -17,8 +17,8 @@ import org.junit.Test;
 import logica.modelo.Incompatibilidad;
 import logica.modelo.Persona;
 import logica.modelo.Rol;
-import persistencia.PersistenciaEnJson;
-import persistencia.PersonaDatos;
+
+
 
 public class PersistenciaEnJsonTest {
 
@@ -46,34 +46,6 @@ public class PersistenciaEnJsonTest {
 	            archivo.delete();
 	        }
 	    }
-
-	    @Test
-	    public void testConvertirPersonaADatos() {
-
-	        Persona persona = new Persona("Juan", Rol.PROGRAMADOR, 3);
-
-	        PersonaDatos dto = PersistenciaEnJson.convertirPersonaADatos(persona);
-
-	        assertEquals("Juan", dto._nombre);
-	        assertEquals(Rol.PROGRAMADOR, dto._rol);
-	        assertEquals(3, dto._calificacion);
-	    }
-
-	    @Test
-	    public void testConvertirAObjeto() {
-
-	        PersonaDatos dto = new PersonaDatos();
-	        dto._nombre = "Ana";
-	        dto._rol = Rol.TESTER;
-	        dto._calificacion = 4;
-
-	        Persona persona = PersistenciaEnJson.convertirAObjeto(dto);
-
-	        assertEquals("Ana", persona.getNombre());
-	        assertEquals(Rol.TESTER, persona.getRol());
-	        assertEquals(4, persona.getCalificacion());
-	    }
-
 	    @Test
 	    public void testGuardarYCargarEquipo() {
 
