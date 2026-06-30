@@ -82,8 +82,8 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				Set<IncompatibilidadDato> dtos = gson.fromJson(reader, tipoLista);
 				if(dtos != null){
 					for (IncompatibilidadDato dto : dtos) {
-						String primeraPersona= dto.__PrimeraPersona;
-						String segundaPersona= dto.__SegundaPersona;
+						String primeraPersona= dto.ElegirPrimeraPersona();
+						String segundaPersona= dto.ElegirSegundaPersona();
 						listaIncompatibilidad.add(buscaYcreaIncompatibilidad(personal, primeraPersona, segundaPersona));
 					}
 				}
@@ -106,8 +106,8 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 	}
 		private static IncompatibilidadDato convertirAIncompatibilidad(Incompatibilidad incompatibles) {
 			IncompatibilidadDato dto= new IncompatibilidadDato();
-			dto.__PrimeraPersona = incompatibles.getPersona1().getNombre();
-			dto.__SegundaPersona = incompatibles.getPersona2().getNombre();
+			dto.ingresarPrimeraNombre(incompatibles.getPersona1().getNombre());
+			dto.ingresarSegundoNombre(incompatibles.getPersona2().getNombre()); 
 			return dto;
 		}
 
