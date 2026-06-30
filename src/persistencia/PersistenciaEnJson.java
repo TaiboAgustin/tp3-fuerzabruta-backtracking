@@ -28,12 +28,12 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 			
 		public static Set<Persona> cargarPersonal(String archivo){
 			try (FileReader reader = new FileReader(archivo)){
-				Type tipoLista= new TypeToken<Set<PersonaDatos>>() {}.getType();
-				Set<PersonaDatos>dtos = gson.fromJson(reader, tipoLista);
+				Type tipoLista= new TypeToken<Set<Persona>>() {}.getType();
+				Set<Persona>dtos = gson.fromJson(reader, tipoLista);
 				Set<Persona>Personal = new HashSet<>();
 				if(dtos!= null) {
-					for(PersonaDatos dto : dtos) {
-						Personal.add(convertirAObjeto(dto));
+					for(Persona dto : dtos) {
+						Personal.add(dto);
 					}
 				}
 				return Personal;
@@ -43,9 +43,9 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 			}
 		}
 		public static void guardarEquipo(Set<Persona>equipo , String archivo) {
-			List<PersonaDatos>dtos = new ArrayList<PersonaDatos>();
+			List<Persona>dtos = new ArrayList<Persona>();
 			for(Persona persona : equipo) {
-				dtos.add(convertirPersonaADatos(persona));
+				dtos.add(persona);
 			}
 			try(FileWriter writer = new FileWriter(archivo)){
 				gson.toJson(dtos,writer);
