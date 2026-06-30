@@ -26,7 +26,7 @@ public class AlgoritmoBacktracking {
     private List<Persona> equipoParcial;
     private final Requerimiento requerimiento;
     private final Rol[] rolesRequeridos;
-    Map<Rol, List<Persona>> candidatosOrdenadosPorRol = new EnumMap<>(Rol.class);
+    private final Map<Rol, List<Persona>> candidatosOrdenadosPorRol;
 
     public AlgoritmoBacktracking(List<Persona> candidatos, List<Incompatibilidad> incompatibilidades, Requerimiento requerimiento) {
         this.incompatibilidades         = incompatibilidades;
