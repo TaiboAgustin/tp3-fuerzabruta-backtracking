@@ -1,22 +1,23 @@
 package persistencia;
 
 public class IncompatibilidadDato {
-    private String __primeraNombre;
-    private String __segundoNombre;
+    private String nombrePersona1;
+    private String nombrePersona2;
 
     protected IncompatibilidadDato(){
         
     }
-    protected String ElegirPrimeraPersona(){
-        return __primeraNombre;
+    protected String getPrimeraPersona(){
+        return nombrePersona1;
     }
-    protected String ElegirSegundaPersona(){
-        return __segundoNombre;
+    protected String getSegundaPersona(){
+        return nombrePersona2;
     }
-    protected void ingresarPrimeraNombre(String nombre){
-        this.__primeraNombre=nombre;
+    protected void setPrimeraNombre(String nombre){
+        this.nombrePersona1=nombre;
     }
-    protected void ingresarSegundoNombre(String nombre){
-        this.__segundoNombre=nombre;
+    protected void setSegundoNombre(String nombre){
+        this.nombrePersona2=nombre;
     }
 }
+    
