@@ -158,7 +158,6 @@ public class AlgoritmoBacktracking {
                     indiceRol);
 
             elegidosParaRolActual.remove(elegidosParaRolActual.size() - 1);
-            this.elegidosEnProcesoOrdenadosPorRol.put(rolActual, elegidosParaRolActual);
             equipoParcial.remove(equipoParcial.size() - 1);
             calParcial -= candidato.getCalificacion();
         }
