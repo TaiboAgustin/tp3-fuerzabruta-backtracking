@@ -110,15 +110,5 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 			dto.__SegundaPersona = incompatibles.getPersona2().getNombre();
 			return dto;
 		}
-		public static PersonaDatos convertirPersonaADatos(Persona persona) {
-			PersonaDatos dto= new PersonaDatos();
-			dto._nombre=persona.getNombre();
-			dto._rol= persona.getRol();
-			dto._calificacion= persona.getCalificacion();
-			return dto;
-		}
-		public static Persona convertirAObjeto(PersonaDatos dto) {
-			return new Persona(dto._nombre,dto._rol,dto._calificacion);
-		}
 
 }
