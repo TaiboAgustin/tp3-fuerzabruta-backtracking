@@ -96,6 +96,7 @@ public class AlgoritmoBacktracking {
 	}
 
 	private Map<Rol, List<Persona>> agruparCandidatosPorRol(List<Persona> personas) {
+		Map<Rol, List<Persona>> mapaDeCandidatos = new HashMap<>();
 		for (Rol rol : Rol.values()) {
 			List<Persona> grupo = new ArrayList<>();
 			for (Persona persona : personas) {
@@ -103,9 +104,9 @@ public class AlgoritmoBacktracking {
 					grupo.add(persona);
 			}
 			grupo.sort(Comparator.comparingInt(Persona::getCalificacion).reversed());
-            candidatosOrdenadosPorRol.put(rol, grupo);
+			mapaDeCandidatos.put(rol, grupo);
 		}
-		return candidatosOrdenadosPorRol;
+		return mapaDeCandidatos;
 	}
 
 	private void backtrack(int indiceRol) {
