@@ -6,7 +6,12 @@ import java.util.Map;
 public class Requerimiento {
     private Map<Rol, Integer> cuposPorRol;
 
-    public Requerimiento() {
+    public Requerimiento(Map<Rol, Integer> cuposPorRol) {
+		super();
+		this.cuposPorRol = cuposPorRol;
+	}
+
+	public Requerimiento() {
         this.cuposPorRol = new HashMap<>();
     }
 
@@ -26,4 +31,6 @@ public class Requerimiento {
         }
         return true;
     }
+    
+    
 }

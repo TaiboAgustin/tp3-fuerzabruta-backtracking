@@ -8,6 +8,12 @@ public class Persona {
     private int calificacion;
 
     public Persona(String nombre, Rol rol, int calificacion) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre no puede ser vacío.");
+        }
+        if (rol == null) {
+            throw new IllegalArgumentException("El rol no puede ser nulo.");
+        }
         if (calificacion < 1 || calificacion > 5) {
             throw new IllegalArgumentException("La calificación debe estar entre 1 y 5.");
         }
