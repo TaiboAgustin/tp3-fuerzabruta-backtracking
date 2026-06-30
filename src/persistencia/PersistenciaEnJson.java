@@ -28,12 +28,12 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 			
 		public static Set<Persona> cargarPersonal(String archivo){
 			try (FileReader reader = new FileReader(archivo)){
-				Type tipoLista= new TypeToken<Set<PersonaDatos>>() {}.getType();
-				Set<PersonaDatos>dtos = gson.fromJson(reader, tipoLista);
+				Type tipoLista= new TypeToken<Set<Persona>>() {}.getType();
+				Set<Persona>dtos = gson.fromJson(reader, tipoLista);
 				Set<Persona>Personal = new HashSet<>();
 				if(dtos!= null) {
-					for(PersonaDatos dto : dtos) {
-						Personal.add(convertirAObjeto(dto));
+					for(Persona dto : dtos) {
+						Personal.add(dto);
 					}
 				}
 				return Personal;
@@ -43,9 +43,9 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 			}
 		}
 		public static void guardarEquipo(Set<Persona>equipo , String archivo) {
-			List<PersonaDatos>dtos = new ArrayList<PersonaDatos>();
+			List<Persona>dtos = new ArrayList<Persona>();
 			for(Persona persona : equipo) {
-				dtos.add(convertirPersonaADatos(persona));
+				dtos.add(persona);
 			}
 			try(FileWriter writer = new FileWriter(archivo)){
 				gson.toJson(dtos,writer);
@@ -82,8 +82,8 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 				Set<IncompatibilidadDato> dtos = gson.fromJson(reader, tipoLista);
 				if(dtos != null){
 					for (IncompatibilidadDato dto : dtos) {
-						String primeraPersona= dto.__PrimeraPersona;
-						String segundaPersona= dto.__SegundaPersona;
+						String primeraPersona= dto.getPrimeraPersona();
+						String segundaPersona= dto.getSegundaPersona();
 						listaIncompatibilidad.add(buscaYcreaIncompatibilidad(personal, primeraPersona, segundaPersona));
 					}
 				}
@@ -106,19 +106,9 @@ private static final Gson gson=new GsonBuilder().setPrettyPrinting().create();
 	}
 		private static IncompatibilidadDato convertirAIncompatibilidad(Incompatibilidad incompatibles) {
 			IncompatibilidadDato dto= new IncompatibilidadDato();
-			dto.__PrimeraPersona = incompatibles.getPersona1().getNombre();
-			dto.__SegundaPersona = incompatibles.getPersona2().getNombre();
+			dto.setPrimeraNombre(incompatibles.getPersona1().getNombre());
+			dto.setSegundoNombre(incompatibles.getPersona2().getNombre()); 
 			return dto;
-		}
-		public static PersonaDatos convertirPersonaADatos(Persona persona) {
-			PersonaDatos dto= new PersonaDatos();
-			dto._nombre=persona.getNombre();
-			dto._rol= persona.getRol();
-			dto._calificacion= persona.getCalificacion();
-			return dto;
-		}
-		public static Persona convertirAObjeto(PersonaDatos dto) {
-			return new Persona(dto._nombre,dto._rol,dto._calificacion);
 		}
 
 }
