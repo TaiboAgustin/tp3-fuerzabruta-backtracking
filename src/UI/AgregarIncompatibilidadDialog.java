@@ -37,10 +37,10 @@ public class AgregarIncompatibilidadDialog extends JDialog {
         JLabel lbl2 = buildLabel("Segunda persona", 122);
         combo2 = buildCombo(nombres, 122);
 
-        JButton btnCancelar = buildButton("Cancelar", BORDER, 90, 180);
+        JButton btnCancelar = buildButton("Cancelar", BORDER, new Point(90, 180));
         btnCancelar.addActionListener(e -> dispose());
 
-        JButton btnAgregar = buildButton("Agregar", GREEN, 220, 180);
+        JButton btnAgregar = buildButton("Agregar", GREEN, new Point(220, 180));
         btnAgregar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnAgregar.addActionListener(e -> confirmar());
 
@@ -92,9 +92,9 @@ public class AgregarIncompatibilidadDialog extends JDialog {
         return cb;
     }
 
-    private JButton buildButton(String text, Color bg, int x, int y) {
+    private JButton buildButton(String text, Color bg, Point pos) {
         JButton btn = new JButton(text);
-        btn.setBounds(x, y, 110, 36);
+        btn.setBounds(pos.x, pos.y, 110, 36);
         btn.setBackground(bg);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
