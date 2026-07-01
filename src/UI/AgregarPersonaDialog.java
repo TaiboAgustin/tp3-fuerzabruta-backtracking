@@ -1,6 +1,6 @@
 package UI;
 
-import logica.modelo.*;
+import logica.modelo.Rol;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +15,10 @@ public class AgregarPersonaDialog extends JDialog {
     private JTextField       fieldNombre;
     private JComboBox<String> comboRol;
     private JSpinner          spinnerCalif;
-    private Persona           resultado;
+    private boolean           confirmado;
+    private String            nombre;
+    private Rol               rol;
+    private int               calificacion;
 
     public AgregarPersonaDialog(JFrame parent) {
         super(parent, "Agregar persona", true);
@@ -67,23 +70,28 @@ public class AgregarPersonaDialog extends JDialog {
     }
 
     private void confirmar() {
-        String nombre = fieldNombre.getText().trim();
-        if (nombre.isEmpty()) {
+        String texto = fieldNombre.getText().trim();
+        if (texto.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Ingresa un nombre.", "Campo requerido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        Rol rol = switch (comboRol.getSelectedIndex()) {
+        nombre = texto;
+        rol = switch (comboRol.getSelectedIndex()) {
             case 0  -> Rol.LIDER_DE_PROYECTO;
             case 1  -> Rol.ARQUITECTO;
             case 2  -> Rol.PROGRAMADOR;
             default -> Rol.TESTER;
         };
-        resultado = new Persona(nombre, rol, (int) spinnerCalif.getValue());
+        calificacion = (int) spinnerCalif.getValue();
+        confirmado = true;
         dispose();
     }
 
-    public Persona getPersona() { return resultado; }
+    public boolean fueConfirmado() { return confirmado; }
+    public String getNombre()      { return nombre; }
+    public Rol getRol()            { return rol; }
+    public int getCalificacion()   { return calificacion; }
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
 
