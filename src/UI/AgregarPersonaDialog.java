@@ -54,10 +54,10 @@ public class AgregarPersonaDialog extends JDialog {
         styleSpinner(spinnerCalif);
         panel.add(spinnerCalif);
 
-        JButton btnCancelar = buildButton("Cancelar", BORDER, 80, 230);
+        JButton btnCancelar = buildButton("Cancelar", BORDER, new Point(80, 230));
         btnCancelar.addActionListener(e -> dispose());
 
-        JButton btnAgregar = buildButton("Agregar", GREEN, 210, 230);
+        JButton btnAgregar = buildButton("Agregar", GREEN, new Point(210, 230));
         btnAgregar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnAgregar.addActionListener(e -> confirmar());
 
@@ -117,9 +117,9 @@ public class AgregarPersonaDialog extends JDialog {
         return tf;
     }
 
-    private JButton buildButton(String text, Color bg, int x, int y) {
+    private JButton buildButton(String text, Color bg, Point pos) {
         JButton btn = new JButton(text);
-        btn.setBounds(x, y, 110, 36);
+        btn.setBounds(pos.x, pos.y, 110, 36);
         btn.setBackground(bg);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));

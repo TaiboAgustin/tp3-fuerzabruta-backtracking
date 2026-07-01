@@ -53,8 +53,11 @@ que cumpla los cupos por rol y no contenga ningún par incompatible.
 ## Arquitectura
 
 El código de negocio está **claramente separado** del código de interfaz: toda la
-lógica vive bajo `logica/` y `persistencia/`, sin ninguna dependencia de Swing,
-mientras que `UI/` consume esas clases.
+lógica vive bajo `logica/` y `persistencia/`, sin ninguna dependencia de Swing.
+La capa `UI/` no manipula el dominio directamente: dialoga con un **coordinador**
+(`CoordinadorEquipo`) que orquesta el modelo, el algoritmo y la persistencia. Así
+las pantallas Swing solo arman la vista y delegan toda la lógica, sin construir ni
+validar entidades por su cuenta.
 
 ```
 tp3-fuerzabruta-backtracking/
@@ -64,6 +67,8 @@ tp3-fuerzabruta-backtracking/
 │   │   ├── PantallaEquipo.java             # Pantalla principal con pestañas
 │   │   ├── AgregarPersonaDialog.java       # Alta de candidatos
 │   │   └── AgregarIncompatibilidadDialog.java
+│   ├── coordinador/         # Coordina UI ↔ modelo / algoritmo / persistencia
+│   │   └── CoordinadorEquipo.java
 │   ├── logica/
 │   │   ├── modelo/          # Módulo 1 — Clases del dominio
 │   │   │   ├── Rol.java
@@ -75,7 +80,6 @@ tp3-fuerzabruta-backtracking/
 │   │       └── AlgoritmoBacktracking.java
 │   └── persistencia/        # Módulo 2 — Carga y guardado en JSON
 │       ├── PersistenciaEnJson.java
-│       ├── PersonaDatos.java
 │       └── IncompatibilidadDato.java
 ├── test/                    # Tests unitarios (espejo de src/)
 ├── lib/                     # Dependencias externas (JARs)
@@ -91,6 +95,10 @@ tp3-fuerzabruta-backtracking/
 | 3 | Algoritmo | `logica.algoritmo` | Backtracking con poda, ejecutado en thread aparte |
 | 4 | UI | `UI` | Pantallas Swing para cargar datos, ejecutar y visualizar |
 
+Además, el paquete `coordinador` (`CoordinadorEquipo`) actúa como **fachada** entre la
+UI y el resto: expone operaciones de alto nivel (agregar personas e incompatibilidades,
+disparar la búsqueda, guardar/cargar) para que la interfaz no contenga lógica de negocio.
+
 ## Modelo de dominio
 
 - **`Rol`** — enum: `LIDER_DE_PROYECTO`, `ARQUITECTO`, `PROGRAMADOR`, `TESTER`.
@@ -102,10 +110,10 @@ tp3-fuerzabruta-backtracking/
   nula y que no se declare a alguien incompatible consigo mismo.
 - **`Requerimiento`** — mapa de rol → cantidad requerida. Sabe decidir si un
   `ResultadoEquipo` cumple exactamente los cupos.
-- **`ResultadoEquipo`** — conjunto de integrantes y su calificación total acumulada.
-  Mantiene el invariante de que la calificación total siempre refleja a los
-  integrantes presentes. Expone la constante `SIN_SOLUCION` para representar la
-  ausencia de equipo válido.
+- **`ResultadoEquipo`** — conjunto de integrantes. Su calificación total se **calcula
+  a demanda** a partir de los integrantes, de modo que siempre refleja el estado actual
+  sin necesidad de mantener un acumulador sincronizado. Expone la constante
+  `SIN_SOLUCION` para representar la ausencia de equipo válido.
 
 ## El algoritmo
 
@@ -202,8 +210,10 @@ corre la suite de tests y mide cobertura con **JaCoCo**, exigiendo un mínimo de
 ## Decisiones de diseño
 
 - **Separación negocio / UI:** ni `logica` ni `persistencia` dependen de Swing; la
-  interfaz se apoya sobre ellos. Esto permite testear el dominio y el algoritmo de
-  forma aislada.
+  interfaz se apoya sobre ellos a través de `CoordinadorEquipo`, que concentra la
+  lógica de aplicación. Las pantallas solo recogen entrada y renderizan resultados,
+  sin construir ni validar entidades del dominio. Esto permite testear el dominio, el
+  algoritmo y el coordinador de forma aislada.
 - **Cómputo fuera del hilo de UI:** el algoritmo se ejecuta en un `SwingWorker` y los
   datos se copian de forma defensiva antes de pasarlos al thread de fondo, evitando
   condiciones de carrera sobre las listas de la UI.
